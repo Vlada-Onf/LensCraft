@@ -1,0 +1,17 @@
+﻿using Domain.Models;
+using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Application.Crud.Users.Update
+{
+    public record UpdateUserCommand : IRequest<User>
+    {
+        public required Guid Id { get; init; }
+        public required string FirstName { get; init; }
+        public required string LastName { get; init; }
+    }
+}
