@@ -8,6 +8,7 @@ public class User
     public DateTime RegisteredAt { get; }
 
     public ICollection<Comment> CommentsLeft { get; }
+    public ICollection<UserFavoritePhotographer> FavoritePhotographers { get; }
 
     private User(Guid id, string firstName, string lastName, string email, DateTime registeredAt)
     {
@@ -17,6 +18,7 @@ public class User
         Email = email;
         RegisteredAt = registeredAt;
         CommentsLeft = new List<Comment>();
+        FavoritePhotographers = new List<UserFavoritePhotographer>();
     }
 
     public static User Register(Guid id, string firstName, string lastName, string email)

@@ -24,7 +24,13 @@ public class CommentController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(CommentDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(result.Error);
+        }
+
+        return Ok(CommentDto.FromDomainModel(result.Value!));
     }
 
 
@@ -32,15 +38,29 @@ public class CommentController(IMediator mediator) : ControllerBase
     public async Task<ActionResult<CommentDto>> GetById(Guid id)
     {
         var result = await mediator.Send(new GetCommentById(id));
-        return result is null ? NotFound() : Ok(CommentDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == GetCommentByIdError.NotFound)
+                return NotFound();
+            return BadRequest(result.Error);
+        }
+
+        return Ok(CommentDto.FromDomainModel(result.Value!));
     }
     [HttpGet]
     public async Task<ActionResult<List<CommentDto>>> GetAll()
     {
         var result = await mediator.Send(new GetAllComments());
-        return Ok(result.Select(CommentDto.FromDomainModel).ToList());
-    }
 
+        if (!result.IsSuccess)
+        {
+          return BadRequest(result.Error);
+        }
+
+        var dtos = result.Value!.Select(CommentDto.FromDomainModel).ToList();
+        return Ok(dtos);
+    }
 
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<CommentDto>> Edit(Guid id, [FromBody] EditCommentDto dto)
@@ -52,13 +72,32 @@ public class CommentController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(CommentDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == EditCommentError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(CommentDto.FromDomainModel(result.Value!));
+
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success = await mediator.Send(new DeleteCommentCommand(id));
-        return success ? NoContent() : NotFound();
+        var result = await mediator.Send(new DeleteCommentCommand(id));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == DeleteCommentError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return NoContent();
     }
 }

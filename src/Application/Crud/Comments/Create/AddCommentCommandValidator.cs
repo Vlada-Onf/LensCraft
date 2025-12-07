@@ -15,6 +15,6 @@ public class AddCommentCommandValidator : AbstractValidator<AddCommentCommand>
         RuleFor(x => x.Text)
             .NotNull().WithMessage("Text cannot be null")
             .NotEmpty().WithMessage("Text is required")
-            .MinimumLength(1).WithMessage("Text must be at least 1 character long"); // Змінив з 3 на 1
+            .MinimumLength(1).WithMessage("Text must be at least 1 character long");
     }
 }

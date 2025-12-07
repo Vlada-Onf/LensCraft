@@ -1,24 +1,32 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain.Models;
 
 namespace Application.Crud.Comments.Read
 {
     public class GetCommentByIdQueryHandler(
-        ICommentService commentService
-    ) : IRequestHandler<GetCommentById, Comment?>
+    ICommentService commentService
+) : IRequestHandler<GetCommentById, Result<GetCommentByIdError, Comment>>
     {
-        public async Task<Comment?> Handle(GetCommentById request, CancellationToken cancellationToken)
+        public async Task<Result<GetCommentByIdError, Comment>> Handle(
+            GetCommentById request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Comment ID must not be empty");
+                return Result<GetCommentByIdError, Comment>.Fail(GetCommentByIdError.InvalidId);
 
-            return await commentService.GetByIdAsync(request.Id);
+            var comment = await commentService.GetByIdAsync(request.Id);
+
+            if (comment is null)
+                return Result<GetCommentByIdError, Comment>.Fail(GetCommentByIdError.NotFound);
+
+            return Result<GetCommentByIdError, Comment>.Success(comment);
         }
     }
 }

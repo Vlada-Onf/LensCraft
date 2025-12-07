@@ -1,11 +1,18 @@
-﻿using System;
+﻿using Application.Common.Results;
+using Domain.Models;
+using MediatR;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain.Models;
-using MediatR;
 
 namespace Application.Crud.Comments.Read;
 
-public record GetAllComments() : IRequest<IReadOnlyList<Comment>>;
+public record GetAllComments
+    : IRequest<Result<GetAllCommentsError, IReadOnlyList<Comment>>>;
+
+public enum GetAllCommentsError
+{
+    None
+}

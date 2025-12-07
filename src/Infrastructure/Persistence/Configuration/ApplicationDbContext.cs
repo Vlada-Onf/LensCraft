@@ -11,7 +11,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<PortfolioItem> PortfolioItems => Set<PortfolioItem>();
     public DbSet<PhotoGear> PhotoGears => Set<PhotoGear>();
     public DbSet<Comment> Comments => Set<Comment>();
-
+    public DbSet<Genre> Genres => Set<Genre>();
+    public DbSet<PhotographerGenre> PhotographerGenres => Set<PhotographerGenre>();
+    public DbSet<UserFavoritePhotographer> UserFavoritePhotographers => Set<UserFavoritePhotographer>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

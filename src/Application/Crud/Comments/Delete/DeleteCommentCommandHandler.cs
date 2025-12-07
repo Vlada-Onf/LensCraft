@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -9,16 +10,22 @@ using System.Threading.Tasks;
 namespace Application.Crud.Comments.Delete
 {
     public class DeleteCommentCommandHandler(
-        ICommentService commentService
-    ) : IRequestHandler<DeleteCommentCommand, bool>
+    ICommentService commentService
+) : IRequestHandler<DeleteCommentCommand, Result<DeleteCommentError, bool>>
     {
-        public async Task<bool> Handle(DeleteCommentCommand request, CancellationToken cancellationToken)
+        public async Task<Result<DeleteCommentError, bool>> Handle(
+        DeleteCommentCommand request,
+        CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Comment ID must not be empty");
+                return Result<DeleteCommentError, bool>.Fail(DeleteCommentError.InvalidId);
 
-            var success = await commentService.RemoveAsync(request.Id);
-            return success;
+            var deleted = await commentService.RemoveAsync(request.Id);
+
+            if (!deleted)
+                return Result<DeleteCommentError, bool>.Fail(DeleteCommentError.NotFound);
+
+            return Result<DeleteCommentError, bool>.Success(true);
         }
     }
 }
