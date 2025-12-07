@@ -14,6 +14,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Genre> Genres => Set<Genre>();
     public DbSet<PhotographerGenre> PhotographerGenres => Set<PhotographerGenre>();
     public DbSet<UserFavoritePhotographer> UserFavoritePhotographers => Set<UserFavoritePhotographer>();
+    public DbSet<PhotographerProfile> PhotographerProfiles => Set<PhotographerProfile>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

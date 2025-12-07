@@ -9,6 +9,7 @@ public class Photographer
     public DateTime RegisteredAt { get; }
     public ICollection<PhotographerGenre> Genres { get; }
     public ICollection<UserFavoritePhotographer> FavoritedByUsers { get; }
+    public PhotographerProfile? Profile { get; private set; }
     private Photographer(Guid id, string firstName, string lastName, string email, string bio, DateTime registeredAt)
     {
         Id = id;
@@ -31,5 +32,9 @@ public class Photographer
         FirstName = firstName;
         LastName = lastName;
         Bio = bio;
+    }
+    public void SetProfile(PhotographerProfile profile)
+    {
+        Profile = profile;
     }
 }
