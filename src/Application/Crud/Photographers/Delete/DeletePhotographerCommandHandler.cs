@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,16 +9,30 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Photographers.Delete
 {
-    public class DeletePhotographerCommandHandler(
-    IPhotographerService photographerService
-) : IRequestHandler<DeletePhotographerCommand, bool>
+    public class DeletePhotographerCommandHandler
+    : IRequestHandler<DeletePhotographerCommand, Result<DeletePhotographerError, bool>>
     {
-        public async Task<bool> Handle(DeletePhotographerCommand request, CancellationToken cancellationToken)
+        private readonly IPhotographerService _service;
+
+        public DeletePhotographerCommandHandler(IPhotographerService service)
+        {
+            _service = service;
+        }
+
+        public async Task<Result<DeletePhotographerError, bool>> Handle(
+            DeletePhotographerCommand request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<DeletePhotographerError, bool>.Fail(DeletePhotographerError.InvalidId);
 
-            return await photographerService.RemoveAsync(request.Id);
+            var deleted = await _service.DeleteAsync(request.Id);
+            // або твій існуючий метод RemoveAsync / DeleteAsync
+
+            if (!deleted)
+                return Result<DeletePhotographerError, bool>.Fail(DeletePhotographerError.NotFound);
+
+            return Result<DeletePhotographerError, bool>.Success(true);
         }
     }
 }

@@ -1,9 +1,18 @@
-﻿using MediatR;
+﻿using Application.Common.Results;
 using Domain.Models;
+using MediatR;
 
 namespace Application.Crud.PhotoGears.Update;
 
-public record UpdatePhotoGearCommand : IRequest<PhotoGear>
+public enum UpdatePhotoGearError
+{
+    InvalidId,
+    InvalidName,
+    InvalidModel,
+    NotFound
+}
+
+public record UpdatePhotoGearCommand : IRequest<Result<UpdatePhotoGearError, PhotoGear>>
 {
     public required Guid Id { get; init; }
     public required string Name { get; init; }

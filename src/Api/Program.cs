@@ -50,6 +50,9 @@ public class Program
         builder.Services.AddScoped<IPortfolioService, PortfolioService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<ICommentService, CommentService>();
+        builder.Services.AddScoped<IPhotographerProfileService, PhotographerProfileService>();
+        builder.Services.AddScoped<IGenreService, GenreService>();
+        builder.Services.AddScoped<IFavoritePhotographerService, FavoritePhotographerService>();
 
         builder.Services.AddMediatR(cfg =>
         {
@@ -74,7 +77,6 @@ public class Program
             });
         }
 
-        // Глобальна обробка винятків
         app.Use(async (context, next) =>
         {
             try

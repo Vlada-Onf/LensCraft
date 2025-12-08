@@ -14,7 +14,9 @@ namespace Api.Controllers;
 public class PhotoGearController(IMediator mediator) : ControllerBase
 {
     [HttpPost]
-    public async Task<ActionResult<PhotoGearDto>> Create([FromBody] CreatePhotoGearDto dto, CancellationToken cancellationToken)
+    public async Task<ActionResult<PhotoGearDto>> Create(
+        [FromBody] CreatePhotoGearDto dto,
+        CancellationToken cancellationToken)
     {
         var command = new AddPhotoGearCommand
         {
@@ -26,27 +28,50 @@ public class PhotoGearController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command, cancellationToken);
-        return Ok(PhotoGearDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return Ok(PhotoGearDto.FromDomainModel(result.Value!));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PhotoGearDto>> GetById(Guid id)
     {
         var result = await mediator.Send(new GetPhotoGearById(id));
-        return result is null ? NotFound() : Ok(PhotoGearDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == GetPhotoGearByIdError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(PhotoGearDto.FromDomainModel(result.Value!));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success = await mediator.Send(new DeletePhotoGearCommand(id));
-        return success ? NoContent() : NotFound();
+        var result = await mediator.Send(new DeletePhotoGearCommand(id));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == DeletePhotoGearError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return NoContent();
     }
+
     [HttpGet]
     public async Task<ActionResult<List<PhotoGearDto>>> GetAll()
     {
-        var result = await mediator.Send(new GetAllPhotoGears());
-        return Ok(result.Select(PhotoGearDto.FromDomainModel).ToList());
+        var gears = await mediator.Send(new GetAllPhotoGears());
+        return Ok(gears.Select(PhotoGearDto.FromDomainModel).ToList());
     }
 
     [HttpPut("{id:guid}")]
@@ -61,6 +86,15 @@ public class PhotoGearController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(PhotoGearDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == UpdatePhotoGearError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(PhotoGearDto.FromDomainModel(result.Value!));
     }
 }

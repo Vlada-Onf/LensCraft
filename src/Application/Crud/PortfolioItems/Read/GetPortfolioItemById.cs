@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,5 +9,11 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.PortfolioItems.Read
 {
-    public record GetPortfolioItemByIdQuery(Guid Id) : IRequest<PortfolioItem?>;
+    public enum GetPortfolioItemByIdError
+    {
+        InvalidId,
+        NotFound
+    }
+
+    public record GetPortfolioItemByIdQuery(Guid Id) : IRequest<Result<GetPortfolioItemByIdError, PortfolioItem>>;
 }

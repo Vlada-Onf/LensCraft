@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,17 +9,21 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Users.Delete
 {
-    public class DeleteUserCommandHandler(
-    IUserService userService
-) : IRequestHandler<DeleteUserCommand, bool>
+    public class DeleteUserCommandHandler(IUserService userService)
+    : IRequestHandler<DeleteUserCommand, Result<DeleteUserError, bool>>
     {
-        public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<DeleteUserError, bool>> Handle(
+            DeleteUserCommand request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<DeleteUserError, bool>.Fail(DeleteUserError.InvalidId);
 
-            return await userService.RemoveAsync(request.Id);
+            var deleted = await userService.RemoveAsync(request.Id);
+            if (!deleted)
+                return Result<DeleteUserError, bool>.Fail(DeleteUserError.NotFound);
+
+            return Result<DeleteUserError, bool>.Success(true);
         }
-
     }
 }

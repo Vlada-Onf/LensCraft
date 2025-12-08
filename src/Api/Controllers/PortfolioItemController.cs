@@ -26,21 +26,35 @@ public class PortfolioItemController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(PortfolioItemDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return Ok(PortfolioItemDto.FromDomainModel(result.Value!));
     }
+
     [HttpGet]
     public async Task<ActionResult<List<PortfolioItemDto>>> GetAll()
     {
-        var result = await mediator.Send(new GetAllPortfolioItems());
-        return Ok(result.Select(PortfolioItemDto.FromDomainModel).ToList());
+        // GetAllPortfolioItems теж має повертати просто IReadOnlyList<PortfolioItem>
+        var items = await mediator.Send(new GetAllPortfolioItems());
+        return Ok(items.Select(PortfolioItemDto.FromDomainModel).ToList());
     }
-
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PortfolioItemDto>> GetById(Guid id)
     {
         var result = await mediator.Send(new GetPortfolioItemByIdQuery(id));
-        return result is null ? NotFound() : Ok(PortfolioItemDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == GetPortfolioItemByIdError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(PortfolioItemDto.FromDomainModel(result.Value!));
     }
 
     [HttpPut("{id:guid}")]
@@ -56,13 +70,31 @@ public class PortfolioItemController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(PortfolioItemDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == UpdatePortfolioItemError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(PortfolioItemDto.FromDomainModel(result.Value!));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success = await mediator.Send(new DeletePortfolioItemCommand(id));
-        return success ? NoContent() : NotFound();
+        var result = await mediator.Send(new DeletePortfolioItemCommand(id));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == DeletePortfolioItemError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return NoContent();
     }
 }

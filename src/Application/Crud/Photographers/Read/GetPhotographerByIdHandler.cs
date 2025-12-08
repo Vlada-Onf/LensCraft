@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using Domain.Models;
 using MediatR;
 using System;
@@ -9,16 +10,30 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Photographers.Read
 {
-    public class GetPhotographerByIdQueryHandler(
-    IPhotographerService photographerService
-) : IRequestHandler<GetPhotographerById, Photographer?>
+    public class GetPhotographerByIdHandler
+    : IRequestHandler<GetPhotographerById, Result<GetPhotographerByIdError, Photographer>>
     {
-        public async Task<Photographer?> Handle(GetPhotographerById request, CancellationToken cancellationToken)
+        private readonly IPhotographerService _service;
+
+        public GetPhotographerByIdHandler(IPhotographerService service)
+        {
+            _service = service;
+        }
+
+        public async Task<Result<GetPhotographerByIdError, Photographer>> Handle(
+            GetPhotographerById request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<GetPhotographerByIdError, Photographer>.Fail(GetPhotographerByIdError.InvalidId);
 
-            return await photographerService.GetByIdAsync(request.Id);
+            var photographer = await _service.GetByIdAsync(request.Id);
+
+            if (photographer is null)
+                return Result<GetPhotographerByIdError, Photographer>.Fail(GetPhotographerByIdError.NotFound);
+
+            return Result<GetPhotographerByIdError, Photographer>.Success(photographer);
         }
     }
+
 }

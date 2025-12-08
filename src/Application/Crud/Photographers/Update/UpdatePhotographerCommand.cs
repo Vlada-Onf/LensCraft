@@ -1,12 +1,22 @@
-﻿using Domain.Models;
+﻿using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Crud.Photographers.Update;
 
-public record UpdatePhotographerCommand : IRequest<Photographer>
+public enum UpdatePhotographerError
+{
+    InvalidId,
+    InvalidFirstName,
+    InvalidLastName,
+    NotFound
+}
+
+public record UpdatePhotographerCommand
+    : IRequest<Result<UpdatePhotographerError, Photographer>>
 {
     public Guid Id { get; init; }
-    public string FirstName { get; init; } = string.Empty;
-    public string LastName { get; init; } = string.Empty;
-    public string Bio { get; init; } = string.Empty;
+    public required string FirstName { get; init; }
+    public required string LastName { get; init; }
+    public required string Bio { get; init; }
 }

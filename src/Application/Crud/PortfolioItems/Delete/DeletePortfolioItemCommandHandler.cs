@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,17 +9,21 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.PortfolioItems.Delete
 {
-    public class DeletePortfolioItemCommandHandler(
-    IPortfolioService portfolioService
-) : IRequestHandler<DeletePortfolioItemCommand, bool>
+    public class DeletePortfolioItemCommandHandler(IPortfolioService portfolioService)
+    : IRequestHandler<DeletePortfolioItemCommand, Result<DeletePortfolioItemError, bool>>
     {
-        public async Task<bool> Handle(DeletePortfolioItemCommand request, CancellationToken cancellationToken)
+        public async Task<Result<DeletePortfolioItemError, bool>> Handle(
+            DeletePortfolioItemCommand request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<DeletePortfolioItemError, bool>.Fail(DeletePortfolioItemError.InvalidId);
 
-            return await portfolioService.RemoveAsync(request.Id);
+            var deleted = await portfolioService.RemoveAsync(request.Id);
+            if (!deleted)
+                return Result<DeletePortfolioItemError, bool>.Fail(DeletePortfolioItemError.NotFound);
+
+            return Result<DeletePortfolioItemError, bool>.Success(true);
         }
-
     }
 }

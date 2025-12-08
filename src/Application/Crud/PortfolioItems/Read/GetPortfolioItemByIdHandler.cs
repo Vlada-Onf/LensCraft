@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using Domain.Models;
 using MediatR;
 using System;
@@ -9,18 +10,21 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.PortfolioItems.Read
 {
-    public class GetPortfolioItemByIdQueryHandler(
-    IPortfolioService portfolioService
-) : IRequestHandler<GetPortfolioItemByIdQuery, PortfolioItem?>
+    public class GetPortfolioItemByIdQueryHandler(IPortfolioService portfolioService)
+    : IRequestHandler<GetPortfolioItemByIdQuery, Result<GetPortfolioItemByIdError, PortfolioItem>>
     {
-        public async Task<PortfolioItem?> Handle(GetPortfolioItemByIdQuery request, CancellationToken cancellationToken)
+        public async Task<Result<GetPortfolioItemByIdError, PortfolioItem>> Handle(
+            GetPortfolioItemByIdQuery request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<GetPortfolioItemByIdError, PortfolioItem>.Fail(GetPortfolioItemByIdError.InvalidId);
 
-            return await portfolioService.GetByIdAsync(request.Id);
+            var item = await portfolioService.GetByIdAsync(request.Id);
+            if (item is null)
+                return Result<GetPortfolioItemByIdError, PortfolioItem>.Fail(GetPortfolioItemByIdError.NotFound);
+
+            return Result<GetPortfolioItemByIdError, PortfolioItem>.Success(item);
         }
     }
-
-
 }

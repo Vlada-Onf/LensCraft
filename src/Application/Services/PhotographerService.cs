@@ -14,7 +14,7 @@ public class PhotographerService : IPhotographerService
         _db = db;
     }
 
-    public async Task<Photographer> RegisterAsync(Guid id, string firstName, string lastName, string email, string bio)
+    public async Task<Photographer> CreateAsync(Guid id, string firstName, string lastName, string email, string bio)
     {
         var photographer = Photographer.Create(id, firstName, lastName, email, bio);
         _db.Photographers.Add(photographer);
@@ -32,17 +32,19 @@ public class PhotographerService : IPhotographerService
         return await _db.Photographers.ToListAsync();
     }
 
-    public async Task<bool> RemoveAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var photographer = await _db.Photographers.FindAsync(id);
         if (photographer is null) return false;
+
         _db.Photographers.Remove(photographer);
         await _db.SaveChangesAsync();
         return true;
     }
-    public async Task SaveAsync()
+
+    public Task SaveChangesAsync()
     {
-        await _db.SaveChangesAsync();
+        return _db.SaveChangesAsync();
     }
 }
 

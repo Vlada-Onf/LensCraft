@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,12 +9,19 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Photographers.Create
 {
-    public record AddPhotographerCommand : IRequest<Photographer>
+    public enum AddPhotographerError
+    {
+        InvalidFirstName,
+        InvalidLastName,
+        InvalidEmail
+    }
+
+    public record AddPhotographerCommand
+        : IRequest<Result<AddPhotographerError, Photographer>>
     {
         public required string FirstName { get; init; }
         public required string LastName { get; init; }
         public required string Email { get; init; }
         public required string Bio { get; init; }
     }
-
 }

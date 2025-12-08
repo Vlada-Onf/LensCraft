@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,5 +9,11 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Users.Read
 {
-    public record GetUserByIdQuery(Guid Id) : IRequest<User?>;
+    public enum GetUserByIdError
+    {
+        InvalidId,
+        NotFound
+    }
+
+    public record GetUserByIdQuery(Guid Id) : IRequest<Result<GetUserByIdError, User>>;
 }

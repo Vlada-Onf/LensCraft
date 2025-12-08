@@ -1,29 +1,30 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Domain.Models;
 
 namespace Application.Crud.PhotoGears.Delete
 {
-
-    public class DeletePhotoGearCommandHandler(
-        IPhotoGearService photoGearService
-    ) : IRequestHandler<DeletePhotoGearCommand, bool>
+    public class DeletePhotoGearCommandHandler(IPhotoGearService photoGearService)
+        : IRequestHandler<DeletePhotoGearCommand, Result<DeletePhotoGearError, bool>>
     {
-        public async Task<bool> Handle(DeletePhotoGearCommand request, CancellationToken cancellationToken)
+        public async Task<Result<DeletePhotoGearError, bool>> Handle(
+            DeletePhotoGearCommand request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<DeletePhotoGearError, bool>.Fail(DeletePhotoGearError.InvalidId);
 
-            var gear = await photoGearService.GetByIdAsync(request.Id);
-            if (gear is null)
-                return false;
+            var deleted = await photoGearService.RemoveAsync(request.Id);
+            if (!deleted)
+                return Result<DeletePhotoGearError, bool>.Fail(DeletePhotoGearError.NotFound);
 
-            return await photoGearService.RemoveAsync(gear.Id);
+            return Result<DeletePhotoGearError, bool>.Success(true);
         }
     }
 }

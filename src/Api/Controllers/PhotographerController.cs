@@ -3,7 +3,7 @@ using Application.Crud.Photographers.Create;
 using Application.Crud.Photographers.Update;
 using Application.Crud.Photographers.Read;
 using Application.Crud.Photographers.Delete;
-using Domain.Models;
+using Application.Common.Results;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,8 +25,13 @@ public class PhotographerController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(PhotographerDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return Ok(PhotographerDto.FromDomainModel(result.Value!));
     }
+
     [HttpGet]
     public async Task<ActionResult<List<PhotographerDto>>> GetAll()
     {
@@ -34,12 +39,20 @@ public class PhotographerController(IMediator mediator) : ControllerBase
         return Ok(result.Select(PhotographerDto.FromDomainModel).ToList());
     }
 
-
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PhotographerDto>> GetById(Guid id)
     {
         var result = await mediator.Send(new GetPhotographerById(id));
-        return result is null ? NotFound() : Ok(PhotographerDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == GetPhotographerByIdError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(PhotographerDto.FromDomainModel(result.Value!));
     }
 
     [HttpPut("{id:guid}")]
@@ -54,13 +67,31 @@ public class PhotographerController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(PhotographerDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == UpdatePhotographerError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(PhotographerDto.FromDomainModel(result.Value!));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success = await mediator.Send(new DeletePhotographerCommand(id));
-        return success ? NoContent() : NotFound();
+        var result = await mediator.Send(new DeletePhotographerCommand(id));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == DeletePhotographerError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return NoContent();
     }
 }

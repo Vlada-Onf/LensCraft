@@ -24,22 +24,34 @@ public class UserController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(UserDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+            return BadRequest(result.Error);
+
+        return Ok(UserDto.FromDomainModel(result.Value!));
     }
 
     [HttpGet]
     public async Task<ActionResult<List<UserDto>>> GetAll()
     {
-        var result = await mediator.Send(new GetAllUsers());
-        return Ok(result.Select(UserDto.FromDomainModel).ToList());
+        var users = await mediator.Send(new GetAllUsers());
+        return Ok(users.Select(UserDto.FromDomainModel).ToList());
     }
-
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<UserDto>> GetById(Guid id)
     {
         var result = await mediator.Send(new GetUserByIdQuery(id));
-        return result is null ? NotFound() : Ok(UserDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == GetUserByIdError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(UserDto.FromDomainModel(result.Value!));
     }
 
     [HttpPut("{id:guid}")]
@@ -53,13 +65,31 @@ public class UserController(IMediator mediator) : ControllerBase
         };
 
         var result = await mediator.Send(command);
-        return Ok(UserDto.FromDomainModel(result));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == UpdateUserError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return Ok(UserDto.FromDomainModel(result.Value!));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var success = await mediator.Send(new DeleteUserCommand(id));
-        return success ? NoContent() : NotFound();
+        var result = await mediator.Send(new DeleteUserCommand(id));
+
+        if (!result.IsSuccess)
+        {
+            if (result.Error == DeleteUserError.NotFound)
+                return NotFound();
+
+            return BadRequest(result.Error);
+        }
+
+        return NoContent();
     }
 }

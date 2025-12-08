@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Application.Common.Results;
+using Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -8,9 +9,17 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Users.Update
 {
-    public record UpdateUserCommand : IRequest<User>
+    public enum UpdateUserError
     {
-        public required Guid Id { get; init; }
+        InvalidId,
+        InvalidFirstName,
+        InvalidLastName,
+        NotFound
+    }
+
+    public record UpdateUserCommand : IRequest<Result<UpdateUserError, User>>
+    {
+        public Guid Id { get; init; }
         public required string FirstName { get; init; }
         public required string LastName { get; init; }
     }

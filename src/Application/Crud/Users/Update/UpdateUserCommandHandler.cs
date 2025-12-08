@@ -1,4 +1,5 @@
 ﻿using Application.Common.Interfaces;
+using Application.Common.Results;
 using Domain.Models;
 using MediatR;
 using System;
@@ -9,24 +10,30 @@ using System.Threading.Tasks;
 
 namespace Application.Crud.Users.Update
 {
-    public class UpdateUserCommandHandler(
-    IUserService userService
-) : IRequestHandler<UpdateUserCommand, User>
+    public class UpdateUserCommandHandler(IUserService userService)
+    : IRequestHandler<UpdateUserCommand, Result<UpdateUserError, User>>
     {
-        public async Task<User> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<UpdateUserError, User>> Handle(
+            UpdateUserCommand request,
+            CancellationToken cancellationToken)
         {
             if (request.Id == Guid.Empty)
-                throw new ArgumentException("Id must not be empty");
+                return Result<UpdateUserError, User>.Fail(UpdateUserError.InvalidId);
+
+            if (string.IsNullOrWhiteSpace(request.FirstName))
+                return Result<UpdateUserError, User>.Fail(UpdateUserError.InvalidFirstName);
+
+            if (string.IsNullOrWhiteSpace(request.LastName))
+                return Result<UpdateUserError, User>.Fail(UpdateUserError.InvalidLastName);
 
             var user = await userService.GetByIdAsync(request.Id);
             if (user is null)
-                throw new KeyNotFoundException($"User with ID {request.Id} not found");
+                return Result<UpdateUserError, User>.Fail(UpdateUserError.NotFound);
 
             user.UpdateName(request.FirstName, request.LastName);
             await userService.SaveAsync();
 
-            return user;
+            return Result<UpdateUserError, User>.Success(user);
         }
-
     }
 }
